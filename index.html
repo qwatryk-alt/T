@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PANEL 07 — TERMINAL DOSTĘPU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     KONFIGURACJA TREŚCI — edytuj tu, jeśli wolisz nie ruszać JS
+     (patrz też sekcja CONFIG w <script> na dole pliku)
+     ============================================================ */
+
+  :root{
+    --bg-0:#15171a;
+    --bg-1:#1d2023;
+    --panel:#25292d;
+    --panel-edge:#33383d;
+    --metal-hi:#40464c;
+    --text-0:#e9e6de;
+    --text-1:#9aa0a6;
+    --amber:#f2a93b;
+    --amber-dim:#7a5a24;
+    --lamp-off-glass:#3a2420;
+    --lamp-off-ring:#5a3a2c;
+    --danger:#c8503a;
+    --ok:#6fbf7a;
+    --stripe-a:#0f1113;
+    --stripe-b:#f2a93b;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(242,169,59,0.06), transparent 60%),
+      linear-gradient(180deg,var(--bg-0),var(--bg-1));
+    color:var(--text-0);
+    font-family:'Inter',system-ui,sans-serif;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+  }
+
+  .hazard{
+    width:100%;
+    height:10px;
+    background:repeating-linear-gradient(
+      135deg,
+      var(--stripe-a) 0 14px,
+      var(--stripe-b) 14px 28px
+    );
+    opacity:0.85;
+    flex-shrink:0;
+  }
+
+  .stage{
+    width:100%;
+    max-width:560px;
+    padding:56px 20px 80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--amber);
+    margin-bottom:10px;
+  }
+
+  h1{
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:clamp(24px,5vw,32px);
+    letter-spacing:0.02em;
+    margin:0 0 8px;
+    text-align:center;
+  }
+
+  .sub{
+    font-size:14px;
+    color:var(--text-1);
+    text-align:center;
+    max-width:420px;
+    margin:0 0 36px;
+    line-height:1.5;
+  }
+
+  /* ---------- panel / plate ---------- */
+  .panel{
+    position:relative;
+    width:100%;
+    background:
+      linear-gradient(180deg, var(--metal-hi), var(--panel) 18%, var(--panel));
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
+    padding:36px 30px;
+    box-shadow:
+      0 20px 40px -20px rgba(0,0,0,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .rivet{
+    position:absolute;
+    width:9px;height:9px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #6a7076, #202325 75%);
+    box-shadow:0 1px 1px rgba(0,0,0,0.6);
+  }
+  .rivet.tl{top:12px;left:12px;}
+  .rivet.tr{top:12px;right:12px;}
+  .rivet.bl{bottom:12px;left:12px;}
+  .rivet.br{bottom:12px;right:12px;}
+
+  .field-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-1);
+    margin-bottom:8px;
+    display:block;
+  }
+
+  input[type="text"]{
+    width:100%;
+    background:#101214;
+    border:1px solid #3a4046;
+    border-radius:6px;
+    color:var(--amber);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:16px;
+    letter-spacing:0.04em;
+    padding:14px 16px;
+    outline:none;
+    transition:border-color .15s, box-shadow .15s;
+  }
+  input[type="text"]:focus{
+    border-color:var(--amber);
+    box-shadow:0 0 0 3px rgba(242,169,59,0.15);
+  }
+  input[type="text"]::placeholder{color:#565c62;}
+
+  .btn{
+    margin-top:18px;
+    width:100%;
+    background:var(--amber);
+    color:#20180a;
+    border:none;
+    border-radius:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:transform .08s ease, filter .15s ease;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform:translateY(1px);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--text-0);
+    border:1px solid var(--panel-edge);
+  }
+
+  .msg{
+    margin-top:14px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:0.04em;
+    min-height:16px;
+  }
+  .msg.err{color:var(--danger);}
+  .msg.ok{color:var(--ok);}
+
+  .shake{animation:shake .4s;}
+  @keyframes shake{
+    10%,90%{transform:translateX(-2px);}
+    20%,80%{transform:translateX(4px);}
+    30%,50%,70%{transform:translateX(-8px);}
+    40%,60%{transform:translateX(8px);}
+  }
+
+  /* ---------- lamps ---------- */
+  .lamp-row{
+    display:flex;
+    justify-content:center;
+    gap:22px;
+    margin:8px 0 26px;
+  }
+
+  .lamp-wrap{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+
+  .lamp-index{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--text-1);
+    letter-spacing:0.08em;
+  }
+
+  .lamp{
+    width:64px;height:64px;
+    border-radius:50%;
+    border:3px solid var(--lamp-off-ring);
+    background:radial-gradient(circle at 35% 30%, #4a2c26, var(--lamp-off-glass) 70%);
+    cursor:pointer;
+    position:relative;
+    transition:transform .12s ease, box-shadow .25s ease, border-color .25s ease, background .25s ease;
+  }
+  .lamp:hover{transform:translateY(-2px);}
+  .lamp:active{transform:translateY(0);}
+
+  .lamp.on{
+    border-color:var(--amber);
+    background:radial-gradient(circle at 35% 30%, #ffe1a3, var(--amber) 65%);
+    box-shadow:
+      0 0 18px 4px rgba(242,169,59,0.55),
+      0 0 46px 12px rgba(242,169,59,0.25);
+    cursor:default;
+  }
+  .lamp.locked{
+    cursor:default;
+  }
+  .lamp.on.locked{cursor:default;}
+
+  .status-line{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--text-1);
+    text-align:center;
+    margin-bottom:6px;
+  }
+
+  .hint{
+    font-size:12.5px;
+    color:var(--text-1);
+    text-align:center;
+    line-height:1.6;
+    margin-top:22px;
+  }
+
+  .cipher-block{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:20px;
+    letter-spacing:0.14em;
+    color:var(--amber);
+    text-align:center;
+    background:#101214;
+    border:1px dashed #3a4046;
+    border-radius:6px;
+    padding:18px 12px;
+    margin-bottom:26px;
+    word-break:break-word;
+  }
+
+  .screen{display:none;}
+  .screen.active{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    animation:fadeUp .35s ease;
+  }
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(8px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .download-box{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+  }
+
+  a.download-link{
+    display:inline-block;
+    width:100%;
+    text-align:center;
+    background:var(--ok);
+    color:#0e1f12;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:700;
+    font-size:13px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    padding:14px 16px;
+    border-radius:6px;
+    text-decoration:none;
+    transition:filter .15s ease;
+  }
+  a.download-link:hover{filter:brightness(1.08);}
+
+  footer{
+    margin-top:auto;
+    padding:20px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    color:#4a5056;
+    text-align:center;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .screen.active{animation:none;}
+    .shake{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="hazard"></div>
+
+  <div class="stage">
+
+    <!-- ===================== EKRAN 1: KOD DOSTĘPU ===================== -->
+    <section id="screen-code" class="screen active">
+      <div class="eyebrow">Panel 07 · Sektor A</div>
+      <h1>TERMINAL DOSTĘPU</h1>
+      <p class="sub">Wprowadź kod, który otrzymałeś wcześniej, aby odblokować panel sterowania.</p>
+
+      <div class="panel">
+        <span class="rivet tl"></span><span class="rivet tr"></span>
+        <span class="rivet bl"></span><span class="rivet br"></span>
+
+        <label class="field-label" for="code-input">Kod dostępu</label>
+        <input type="text" id="code-input" placeholder="wpisz kod…" autocomplete="off" spellcheck="false">
+        <button class="btn" id="code-submit">Zatwierdź</button>
+        <div class="msg" id="code-msg"></div>
+      </div>
+    </section>
+
+    <!-- ===================== EKRAN 2: ZAGADKA LAMPEK ===================== -->
+    <section id="screen-puzzle" class="screen">
+      <div class="eyebrow">Panel 07 · Sektor B</div>
+      <h1>ZAPAL WSZYSTKIE LAMPKI</h1>
+      <p class="sub">
+        Możesz włączyć tylko zgaszoną lampkę. Włączenie lampki przełącza stan
+        jej sąsiadek (zapalona ⇄ zgaszona).
+      </p>
+
+      <div class="panel">
+        <span class="rivet tl"></span><span class="rivet tr"></span>
+        <span class="rivet bl"></span><span class="rivet br"></span>
+
+        <div class="status-line" id="puzzle-status">0 / 4 aktywne</div>
+        <div class="lamp-row" id="lamp-row"></div>
+        <button class="btn secondary" id="puzzle-reset">Zresetuj układ</button>
+      </div>
+
+      <p class="hint">Wskazówka: kolejność kliknięć ma znaczenie — czasem trzeba<br>zgasić sąsiadkę, zanim będzie można ją znów zapalić.</p>
+    </section>
+
+    <!-- ===================== EKRAN 3: ODSZYFROWANIE HASŁA ===================== -->
+    <section id="screen-password" class="screen">
+      <div class="eyebrow">Panel 07 · Sektor C</div>
+      <h1>DOSTĘP CZĘŚCIOWO PRZYZNANY</h1>
+      <p class="sub">Układ lampek zgadza się. Terminal ujawnił zaszyfrowaną wiadomość — odszyfruj ją i wpisz wynik poniżej.</p>
+
+      <div class="cipher-block" id="cipher-text">PRZYKŁADOWY SZYFR</div>
+
+      <div class="panel">
+        <span class="rivet tl"></span><span class="rivet tr"></span>
+        <span class="rivet bl"></span><span class="rivet br"></span>
+
+        <label class="field-label" for="password-input">Odszyfrowane hasło</label>
+        <input type="text" id="password-input" placeholder="wpisz odszyfrowane hasło…" autocomplete="off" spellcheck="false">
+        <button class="btn" id="password-submit">Zatwierdź</button>
+        <div class="msg" id="password-msg"></div>
+      </div>
+    </section>
+
+    <!-- ===================== EKRAN 4: NAGRODA ===================== -->
+    <section id="screen-reward" class="screen">
+      <div class="eyebrow">Panel 07 · Sektor D</div>
+      <h1>DOSTĘP PRZYZNANY</h1>
+      <p class="sub">Wszystkie blokady zdjęte. Plik jest gotowy do pobrania.</p>
+
+      <div class="panel download-box">
+        <span class="rivet tl"></span><span class="rivet tr"></span>
+        <span class="rivet bl"></span><span class="rivet br"></span>
+        <a class="download-link" id="reward-link" href="nagroda.txt" download>Pobierz plik</a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer>PANEL 07 — SYSTEM OFFLINE PO ZAKOŃCZENIU SESJI</footer>
+
+<script>
+/* ============================================================
+   CONFIG — podmień te wartości na swoje. To jedyne miejsce,
+   które musisz edytować, żeby zmienić treść zagadki.
+   ============================================================ */
+const CONFIG = {
+  // Kod wpisywany na starcie (małe/wielkie litery i spacje na brzegach nie mają znaczenia)
+  ACCESS_CODE: "słupy wodne 17",
+
+  // Początkowy układ 4 lampek: true = zapalona, false = zgaszona
+  // (od lewej do prawej, lampka 1..4)
+  INITIAL_LAMPS: [true, false, true, false],
+
+  // Zaszyfrowana wiadomość pokazana po rozwiązaniu zagadki z lampkami
+  CIPHER_TEXT: "PRZYKŁADOWY SZYFR",
+
+  // Hasło, które gracz musi wpisać po odszyfrowaniu wiadomości powyżej
+  NEXT_PASSWORD: "przyklad",
+
+  // Nazwa pliku do pobrania (musi leżeć w tym samym repo, obok index.html)
+  DOWNLOAD_FILE: "nagroda.txt"
+};
+
+/* ============================================================
+   Logika — raczej nie trzeba tu nic zmieniać
+   ============================================================ */
+function normalize(str){
+  return str.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* --- Ekran 1: kod dostępu --- */
+const codeInput = document.getElementById("code-input");
+const codeMsg = document.getElementById("code-msg");
+const codePanel = codeInput.closest(".panel");
+
+function submitCode(){
+  const value = normalize(codeInput.value);
+  if (value === normalize(CONFIG.ACCESS_CODE)) {
+    codeMsg.textContent = "";
+    initPuzzle();
+    showScreen("screen-puzzle");
+  } else {
+    codeMsg.textContent = "Błędny kod dostępu.";
+    codeMsg.className = "msg err";
+    codePanel.classList.remove("shake");
+    void codePanel.offsetWidth;
+    codePanel.classList.add("shake");
+  }
+}
+document.getElementById("code-submit").addEventListener("click", submitCode);
+codeInput.addEventListener("keydown", e => { if (e.key === "Enter") submitCode(); });
+
+/* --- Ekran 2: zagadka lampek --- */
+let lamps = [];
+const lampRow = document.getElementById("lamp-row");
+const puzzleStatus = document.getElementById("puzzle-status");
+
+function initPuzzle(){
+  lamps = CONFIG.INITIAL_LAMPS.slice();
+  renderLamps();
+}
+
+function renderLamps(){
+  lampRow.innerHTML = "";
+  lamps.forEach((on, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "lamp-wrap";
+
+    const idx = document.createElement("div");
+    idx.className = "lamp-index";
+    idx.textContent = i + 1;
+
+    const lamp = document.createElement("div");
+    lamp.className = "lamp" + (on ? " on locked" : "");
+    lamp.addEventListener("click", () => clickLamp(i));
+
+    wrap.appendChild(lamp);
+    wrap.appendChild(idx);
+    lampRow.appendChild(wrap);
+  });
+
+  const activeCount = lamps.filter(Boolean).length;
+  puzzleStatus.textContent = activeCount + " / " + lamps.length + " aktywne";
+
+  if (lamps.every(Boolean)) {
+    setTimeout(() => {
+      document.getElementById("cipher-text").textContent = CONFIG.CIPHER_TEXT;
+      showScreen("screen-password");
+    }, 500);
+  }
+}
+
+function clickLamp(i){
+  if (lamps[i]) return; // można klikać tylko zgaszone
+  lamps[i] = true;
+  if (i - 1 >= 0) lamps[i - 1] = !lamps[i - 1];
+  if (i + 1 < lamps.length) lamps[i + 1] = !lamps[i + 1];
+  renderLamps();
+}
+
+document.getElementById("puzzle-reset").addEventListener("click", initPuzzle);
+
+/* --- Ekran 3: hasło --- */
+const passwordInput = document.getElementById("password-input");
+const passwordMsg = document.getElementById("password-msg");
+const passwordPanel = passwordInput.closest(".panel");
+
+function submitPassword(){
+  const value = normalize(passwordInput.value);
+  if (value === normalize(CONFIG.NEXT_PASSWORD)) {
+    passwordMsg.textContent = "";
+    document.getElementById("reward-link").setAttribute("href", CONFIG.DOWNLOAD_FILE);
+    showScreen("screen-reward");
+  } else {
+    passwordMsg.textContent = "To nie jest właściwe hasło.";
+    passwordMsg.className = "msg err";
+    passwordPanel.classList.remove("shake");
+    void passwordPanel.offsetWidth;
+    passwordPanel.classList.add("shake");
+  }
+}
+document.getElementById("password-submit").addEventListener("click", submitPassword);
+passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") submitPassword(); });
+</script>
+</body>
+</html>
