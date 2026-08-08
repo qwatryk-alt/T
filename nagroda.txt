@@ -1,5 +1,3 @@
-Gratulacje, dotarłeś do końca!
+Wszystkiego najlepszego z okazji urodziń.
 
-(To jest plik-placeholder. Podmień go na docelową nagrodę —
-plik musi nazywać się tak samo jak wartość DOWNLOAD_FILE
-w index.html, albo zmień tę wartość na nową nazwę pliku.)
+Życzę ci spełnienia marzeń, żeby serc udało ci się jak najlepiej.
